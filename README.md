@@ -1,80 +1,132 @@
-# Insurance Cross Sell Prediction 🏠🏥
-[![GitHub](https://img.shields.io/badge/GitHub-code-blue?style=flat&logo=github&logoColor=white&color=red)](https://github.com/prsdm/mlops-project) [![Medium](https://img.shields.io/badge/Medium-view_article-green?style=flat&logo=medium&logoColor=white&color=green)](https://medium.com/@prasadmahamulkar/machine-learning-operations-mlops-for-beginners-a5686bfe02b2)
+# Mushroom Classification MLOps Pipeline
 
-Welcome to the Insurance Cross-Selling Prediction project! The goal of this project is to predict which customers are most likely to purchase additional insurance products using a machine learning model.
+## Project Overview
+Proyek ini merupakan implementasi pipeline Machine Learning Operations (MLOps)
+secara end-to-end untuk menyelesaikan permasalahan klasifikasi jamur berdasarkan
+deskripsi karakteristiknya. Model machine learning dikembangkan untuk
+mengklasifikasikan jamur ke dalam dua kelas utama, yaitu **edible** dan
+**poisonous**.
+
+Pipeline ini dirancang dengan pendekatan terstruktur yang mencakup versioning
+data, pelacakan eksperimen, deployment model, serta monitoring performa model
+pada lingkungan produksi.
+
+---
+
+## Problem Statement
+Kesalahan dalam mengidentifikasi jamur yang dapat dikonsumsi (edible) dan yang
+beracun (poisonous) dapat menimbulkan risiko kesehatan yang serius. Oleh karena
+itu, diperlukan sebuah sistem klasifikasi otomatis yang mampu memprediksi
+kategori jamur secara akurat berdasarkan deskripsi karakteristik morfologinya.
+
+Permasalahan utama yang diangkat dalam proyek ini adalah:
+> *Bagaimana membangun pipeline MLOps yang mampu melakukan klasifikasi jamur
+berdasarkan deskripsi fitur kategorikal secara end-to-end, mulai dari pengelolaan
+data hingga monitoring model di lingkungan produksi.*
+
+---
+
+## Objectives
+Tujuan dari proyek ini adalah:
+1. Mengembangkan model machine learning untuk klasifikasi jamur berdasarkan
+   deskripsi karakteristiknya.
+2. Mengimplementasikan pipeline MLOps yang terstruktur dan reproducible.
+3. Mengelola versioning data menggunakan **DVC**.
+4. Melakukan pelacakan eksperimen dan parameter model menggunakan **MLflow**.
+5. Mendeploy model ke dalam REST API menggunakan **FastAPI** dan **Docker**.
+6. Menerapkan monitoring model untuk mendeteksi potensi *data drift* dan
+   *prediction drift*.
+
+---
+
+## Dataset Description
+Dataset yang digunakan berisi deskripsi karakteristik jamur yang bersifat
+kategorikal, seperti:
+- Bentuk dan warna tudung jamur
+- Warna dan bentuk insang
+- Bau (odor)
+- Habitat jamur
+- Karakteristik morfologi lainnya
+
+Setiap observasi jamur memiliki label kelas berupa:
+- **edible** : jamur yang aman dikonsumsi
+- **poisonous** : jamur yang beracun
+
+Dataset dikelola dan dilakukan versioning menggunakan **DVC** untuk memastikan
+konsistensi dan reprodusibilitas eksperimen.
+
+---
+
+## MLOps Workflow
+Pipeline MLOps pada proyek ini mencakup tahapan berikut:
+
+1. **Data Versioning**
+   - Dataset dikelola menggunakan DVC
+   - Setiap perubahan data tercatat dan dapat direproduksi
+
+2. **Data Processing & Feature Engineering**
+   - Pembersihan data
+   - Encoding fitur kategorikal
+   - Pembagian data latih dan data uji
+
+3. **Model Training**
+   - Pelatihan model klasifikasi
+   - Penyesuaian parameter model
+
+4. **Experiment Tracking**
+   - Pelacakan parameter, metrik, dan artefak model menggunakan MLflow
+
+5. **Model Deployment**
+   - Deployment model sebagai REST API menggunakan FastAPI
+   - Containerization menggunakan Docker
+
+6. **Model Monitoring**
+   - Monitoring performa model
+   - Deteksi *data drift* dan *prediction drift*
+
+---
+
+## Project Structure
+Struktur direktori utama pada proyek ini adalah sebagai berikut:
+├── data/ # Dataset dan artefak data
+├── docs/ # Dokumentasi proyek
+├── models/ # Model hasil training
+├── steps/ # Tahapan pipeline MLOps
+├── tests/ # Unit testing
+├── app.py # FastAPI application
+├── main.py # Entry point pipeline
+├── dataset.py # Data loading dan preprocessing
+├── config.yml # Konfigurasi pipeline dan eksperimen
+├── dockerfile # Konfigurasi Docker
+├── requirements.txt # Dependensi proyek
+├── data.dvc # DVC tracking file
+└── README.md # Dokumentasi proyek
 
 
-## Diagram
-Below is the architecture diagram that illustrates the flow of the project from data ingestion to model deployment:
-![Image](docs/mlops.jpg)
+---
 
-## Get Started
-To get started with the project, follow the steps below:
+## Tools & Technologies
+Teknologi yang digunakan dalam proyek ini meliputi:
+- **Python**
+- **Scikit-learn**
+- **DVC (Data Version Control)**
+- **MLflow**
+- **FastAPI**
+- **Docker**
+- **Evidently AI** (monitoring model)
 
-#### 1. Clone the Repository
-Clone the project repository from GitHub:
-```bash
-git clone https://github.com/prsdm/ml-project.git
-```
-```bash
-cd ml-project
-```
-#### 2. Set Up the Environment
-Ensure you have Python 3.8+ installed. Create a virtual environment and install the necessary dependencies:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-Alternatively, you can use the Makefile command:
-```bash
-make setup
-```
-#### 3. Data Preparation
-Pull the data from DVC. If this command doesn't work, the train and test data are already present in the data folder:
-```bash
-dvc pull
-```
+---
 
-#### 4. Train the Model
-To train the model, run the following command:
+## Expected Output
+Output dari sistem ini berupa prediksi kelas jamur:
+- **edible**
+- **poisonous**
 
-```bash
-python main.py 
-```
-Or use the Makefile command:
+Prediksi dapat diakses melalui REST API yang telah dideploy, serta dimonitor
+secara berkelanjutan untuk menjaga performa model di lingkungan produksi.
 
-```bash
-make run
-```
-This script will load the data, preprocess it, train the model, and save the trained model to the models/ directory.
-
-#### 5. FastAPI
-Start the FastAPI application by running:
-
-```bash
-uvicorn app:app --reload
-```
-
-#### 6. Docker
-To build the Docker image and run the container:
-
-```bash
-docker build -t my_fastapi .
-```
-```bash
-docker run -p 80:80 my_fastapi
-```
-Once your Docker image is built, you can push it to Docker Hub, making it accessible for deployment on any cloud platform.
-#### 7. Monitor the Model
-Integrate Evidently AI to monitor the model for data drift and performance degradation:
-
-```bash
-run monitor.ipynb file
-```
+---
 
 ## License
+Proyek ini menggunakan lisensi Apache 2.0.
 
-Copyright © 2024, [Prasad Mahamulkar](https://github.com/prsdm).
-
-Released under the [Apache-2.0 license](LICENSE).
