@@ -1,28 +1,24 @@
-import numpy as np
-from sklearn.impute import SimpleImputer
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 class Cleaner:
     def __init__(self):
-        self.imputer = SimpleImputer(strategy='most_frequent', missing_values=np.nan)
-        
-        
-    def clean_data(self, data):
-        data.drop(['id','SalesChannelID','VehicleAge','DaysSinceCreated'], axis=1, inplace=True)
-        
-        data['AnnualPremium'] = data['AnnualPremium'].str.replace('£', '').str.replace(',', '').astype(float)
-            
-        for col in ['Gender', 'RegionID']:
-             data[col] = self.imputer.fit_transform(data[[col]]).flatten()
-             
-        data['Age'] = data['Age'].fillna(data['Age'].median())
-        data['HasDrivingLicense']= data['HasDrivingLicense'].fillna(1)
-        data['Switch'] = data['Switch'].fillna(-1)
-        data['PastAccident'] = data['PastAccident'].fillna("Unknown", inplace=False)
-        
-        Q1 = data['AnnualPremium'].quantile(0.25)
-        Q3 = data['AnnualPremium'].quantile(0.75)
-        IQR = Q3 - Q1
-        upper_bound = Q3 + 1.5 * IQR
-        data = data[data['AnnualPremium'] <= upper_bound]
-        
-        return data
+        self.label_encoder = LabelEncoder()
+
+    def clean_data(self, data: pd.DataFrame):
+        """
+        Clean and preprocess mushroom dataset
+        """
+        # target column
+        target_col = "class"
+
+        X = data.drop(columns=[target_col])
+        y = data[target_col]
+
+        # one-hot encode categorical features
+        X_encoded = pd.get_dummies(X)
+
+        # encode target
+        y_encoded = self.label_encoder.fit_transform(y)
+
+        return X_encoded, y_encoded
