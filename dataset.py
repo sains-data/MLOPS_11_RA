@@ -1,29 +1,23 @@
-# Sample data extraction file which generate a classification dataset using sklearn.datasets
-from sklearn.datasets import make_classification
 import pandas as pd
-import os
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
-def extract_data():
-    if not os.path.exists("data"):
-        os.mkdir("data")
-    
-    append_mode = os.path.isfile("data/train.csv")
+class MushroomDataset:
+    def __init__(self, data_path):
+        self.data_path = data_path
+        self.df = pd.read_csv(data_path)
 
-    num_datasets = 10 if not append_mode else 1
+    def preprocess(self):
+        # target column (edible / poisonous)
+        target_col = "class"
 
-    for _ in range(num_datasets):
-        X, y = make_classification(n_samples=10000, n_features=10, n_informative=8, n_redundant=2, n_classes=2, random_state=42)
-        
-        df = pd.DataFrame(X, columns=[f'feature_{i}' for i in range(X.shape[1])])
-        df['target'] = y
-        
-        train_data = df.iloc[:8000]
-        test_data = df.iloc[8000:]
-        
-        train_data.to_csv("data/train.csv", mode="a", header=not append_mode, index=False)
-        test_data.to_csv("data/test.csv", mode="a", header=not append_mode, index=False)
+        X = self.df.drop(columns=[target_col])
+        y = self.df[target_col]
 
-    print("Extracted data from source successfully")
+        # encode categorical features
+        X_encoded = pd.get_dummies(X)
 
-if __name__ == "__main__":
-    extract_data()
+        # encode target
+        y_encoded = LabelEncoder().fit_transform(y)
+
+        return X_encoded, y_encoded
