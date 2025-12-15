@@ -1,0 +1,10 @@
+data:
+  train_path: data/train/mushroom_train.csv
+  test_path: data/test/mushroom_test.csv
+
+model:
+  name: RandomForestClassifier
+  params:
+    n_estimators: 100
+    random_state: 42
+  store_path: models
