@@ -104,6 +104,68 @@ Struktur direktori utama pada proyek ini adalah sebagai berikut:
 
 
 ---
+## Deployment
+
+Bagian ini menjelaskan cara men-deploy model Mushroom Classification sebagai aplikasi **REST API** menggunakan **FastAPI** dan **Docker**. Panduan ini disesuaikan untuk dijalankan pada lingkungan **Play with Docker**.
+
+### Tahapan Deployment
+
+### 1. Persiapan dan Mengkloning Repositori
+Langkah pertama dalam proses deployment di lingkungan **Play with Docker** adalah mengunduh *source code* proyek. Perintah ini akan menyalin repositori dari GitHub ke dalam *instance* Docker dan mengarahkan terminal ke direktori proyek yang sesuai.
+
+Jalankan perintah berikut di terminal:
+
+```bash
+git clone https://github.com/sains-data/MLOPS_11_RA.git
+cd MLOPS_11_RA
+```
+### 2. Membangun Docker Image
+Setelah masuk ke direktori proyek, langkah selanjutnya adalah membangun **Docker image**. Proses ini akan membaca instruksi di dalam file `Dockerfile`, menyusun lingkungan aplikasi, dan menginstal seluruh dependensi yang terdaftar di `requirements.txt`.
+
+Jalankan perintah berikut di terminal:
+
+```bash
+docker build -t mushroom-classification .
+```
+
+### 3. Menjalankan Docker Container
+Langkah selanjutnya adalah menjalankan image yang telah dibangun menjadi sebuah container. Kita akan menggunakan opsi `-d` (*detached mode*) agar aplikasi berjalan di latar belakang dan tidak memblokir terminal, serta memetakan port internal container (80) ke port akses (80).
+
+Jalankan perintah berikut:
+
+```bash
+docker run -d -p 80:80 mushroom-classification
+```
+Penjelasan:
+
+-d: Menjalankan container di background. Terminal akan tetap aktif untuk perintah selanjutnya.
+
+-p 80:80: Menghubungkan port 80 pada lingkungan Play with Docker dengan port 80 di aplikasi FastAPI.
+
+### 4. Verifikasi dan Akses Aplikasi
+Karena container berjalan di latar belakang, kita perlu memastikan bahwa container sudah aktif sebelum membukanya di browser.
+a. Cek Status Container Ketik perintah berikut untuk melihat daftar container yang sedang berjalan:
+```bash
+docker ps
+```
+Pastikan Anda melihat output yang menampilkan Container ID dan status "Up". Jika statusnya Exited, berarti terjadi kesalahan (gunakan docker logs <container_id> untuk mengecek).
+
+b. Membuka Port di Browser Di lingkungan Play with Docker, akses ke aplikasi dilakukan melalui tautan port yang tersedia:
+
+Cek Badge Port: Lihat di bagian atas layar terminal (di sebelah informasi IP Address). Biasanya akan muncul tautan biru bertuliskan 80 secara otomatis.
+
+Jika Badge Tidak Muncul:
+
+Klik tombol "OPEN PORT" di bagian atas.
+
+Masukkan angka 80 pada kolom yang muncul.
+
+Klik OK.
+
+Akses Aplikasi: Klik tautan 80 tersebut. Browser akan membuka tab baru menuju aplikasi Anda.
+
+Tips: Setelah tab baru terbuka, tambahkan /docs di akhir URL (misalnya: ...play-with-docker.com/docs) untuk masuk ke halaman interaktif Swagger UI dan mulai menguji prediksi jamur.
+
 
 ## Tools & Technologies
 Teknologi yang digunakan dalam proyek ini meliputi:
