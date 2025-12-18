@@ -3,117 +3,78 @@ import pandas as pd
 import joblib
 import os
 
-# ==========================================
-# 1. Konfigurasi Halaman (Harus Paling Atas)
-# ==========================================
-st.set_page_config(
-    page_title="Mushroom AI Detector",
-    page_icon="🍄",
-    layout="wide"
-)
+# ---------------------------------------------------------
+# 1. SETUP HALAMAN
+# ---------------------------------------------------------
+st.set_page_config(page_title="Mushroom AI", layout="centered")
 
-# ==========================================
-# 2. Load Model dengan Jalur "Anti-Nyasar"
-# ==========================================
+# ---------------------------------------------------------
+# 2. FUNGSI LOAD MODEL (DENGAN GPS / ABSOLUTE PATH)
+# ---------------------------------------------------------
 @st.cache_resource
-def load_assets():
+def load_model_smart():
+    # Ini adalah Trik GPS-nya:
+    # Cari tahu di mana file app.py ini berada di dalam server
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Gabungkan alamat folder app.py dengan folder models
+    # Hasilnya akan seperti: /mount/src/.../models/model.pkl
+    model_path = os.path.join(current_dir, 'models', 'model.pkl')
+    
     try:
-        # Trik Ajaib: Cari file berdasarkan lokasi app.py berada
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(current_dir, 'models', 'model.pkl')
-        
-        artifact = joblib.load(model_path)
-        return artifact["model"], artifact["encoder"]
+        loaded_artifact = joblib.load(model_path)
+        return loaded_artifact
     except FileNotFoundError:
-        st.error(f"❌ File tidak ditemukan di: {model_path}")
-        return None, None
-    except Exception as e:
-        st.error(f"❌ Terjadi kesalahan saat load model: {e}")
-        return None, None
+        st.error(f"❌ File tidak ditemukan di lokasi: {model_path}")
+        st.info("Pastikan folder 'models' sejajar (satu folder) dengan app.py")
+        return None
 
-model, encoder = load_assets()
+# Load data
+artifact = load_model_smart()
 
-# Jika model gagal load, hentikan aplikasi
-if model is None or encoder is None:
+# Cek jika gagal load, berhenti disini
+if artifact is None:
     st.stop()
 
-# Mapping Label
-LABEL_MAP = {
-    0: "Edible (Bisa Dimakan) 🥗",
-    1: "Poisonous (Beracun) ☠️"
-}
+model = artifact["model"]
+encoder = artifact["encoder"]
 
-# ==========================================
-# 3. Tampilan Utama (UI)
-# ==========================================
-st.title("🍄 Mushroom Classification AI")
-st.markdown("---")
+# ---------------------------------------------------------
+# 3. TAMPILAN APLIKASI
+# ---------------------------------------------------------
+st.title("🍄 Mushroom Classification App")
+st.write("Apakah jamur ini aman dimakan?")
 
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.image("https://img.freepik.com/free-vector/colorful-mushrooms-collection_1284-13134.jpg", caption="Safety First!")
-
-with col2:
-    st.info("Aplikasi ini menggunakan Machine Learning untuk memprediksi apakah jamur aman dimakan atau beracun berdasarkan ciri-cirinya.")
-
-# ==========================================
-# 4. Input Form "Ajaib" (Di Sidebar)
-# ==========================================
-st.sidebar.header("📝 Masukkan Ciri-Ciri Jamur")
-st.sidebar.write("Pilih opsi di bawah ini:")
-
-inputs = {}
-
-# Form Input
-with st.sidebar.form("mushroom_form"):
-    # LOOP AJAIB: 
-    # Mendeteksi fitur secara otomatis dan membuat Dropdown (Selectbox)
-    # Ini mencegah user salah ketik (Typo)
+with st.form("input_form"):
+    inputs = {}
     
-    if hasattr(encoder, 'feature_names_in_') and hasattr(encoder, 'categories_'):
-        for i, col_name in enumerate(encoder.feature_names_in_):
-            # Ambil opsi valid dari encoder langsung
-            options = list(encoder.categories_[i])
-            inputs[col_name] = st.selectbox(f"Pilih {col_name}", options)
-    else:
-        # Fallback jika encoder tidak punya info kategori (pakai text biasa)
-        st.warning("Mode Input Manual (Encoder tidak menyimpan kategori)")
-        for col_name in getattr(encoder, 'feature_names_in_', []):
-            inputs[col_name] = st.text_input(col_name)
+    # Deteksi fitur otomatis dari encoder
+    if hasattr(encoder, 'feature_names_in_'):
+        for col in encoder.feature_names_in_:
+            # Coba ambil opsi kategori jika ada (untuk Dropdown)
+            if hasattr(encoder, 'categories_'):
+                # Cari index kolom
+                idx = list(encoder.feature_names_in_).index(col)
+                options = encoder.categories_[idx]
+                inputs[col] = st.selectbox(f"Pilih {col}", options)
+            else:
+                # Jika tidak ada info kategori, pakai text input biasa
+                inputs[col] = st.text_input(col)
+    
+    submitted = st.form_submit_button("Cek Jamur")
 
-    submitted = st.form_submit_button("🔍 Prediksi Sekarang")
-
-# ==========================================
-# 5. Proses Prediksi
-# ==========================================
 if submitted:
-    # Buat DataFrame dari input
-    df_input = pd.DataFrame([inputs])
-
     try:
+        df = pd.DataFrame([inputs])
         # Transformasi data
-        X_transformed = encoder.transform(df_input)
-        
+        X_transform = encoder.transform(df)
         # Prediksi
-        prediction = model.predict(X_transformed)[0]
-        probability = model.predict_proba(X_transformed).max()
-
-        # Tampilkan Hasil
-        st.markdown("### Hasil Analisis:")
+        prediction = model.predict(X_transform)[0]
         
-        if prediction == 0: # Edible
-            st.success(f"## {LABEL_MAP[0]}")
-            st.balloons()
-        else: # Poisonous
-            st.error(f"## {LABEL_MAP[1]}")
+        if prediction == 0:
+            st.success("✅ EDIBLE (Bisa Dimakan)")
+        else:
+            st.error("☠️ POISONOUS (Beracun!)")
             
-        st.metric(label="Tingkat Kepercayaan (Confidence)", value=f"{probability:.2%}")
-
-        # Tampilkan data yang diinput user (untuk debug/konfirmasi)
-        with st.expander("Lihat Data Input"):
-            st.dataframe(df_input)
-
     except Exception as e:
-        st.error("Terjadi kesalahan saat memproses data.")
-        st.code(e)
+        st.error(f"Terjadi kesalahan: {e}")
