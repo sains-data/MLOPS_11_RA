@@ -1,32 +1,28 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import streamlit as st
 import pandas as pd
 import joblib
 
-app = FastAPI()
+# Load model
+model_data = joblib.load("model/model.pkl")
+model = model_data["model"]
+columns = model_data["columns"]
 
-class InputData(BaseModel):
-    Gender: str
-    Age: int
-    HasDrivingLicense: int
-    RegionID: float
-    Switch: int
-    PastAccident: str
-    AnnualPremium: float
+st.set_page_config(page_title="Mushroom Classifier", layout="centered")
+st.title("🍄 Mushroom Classification App")
+st.write("Predict whether a mushroom is **Edible** or **Poisonous**")
 
-model = joblib.load('models/model.pkl')
+st.subheader("Input Mushroom Features")
 
-@app.get("/")
-async def read_root():
-    return {"health_check": "OK", "model_version": 1}
+# User input
+user_input = {}
+for col in columns:
+    user_input[col] = st.selectbox(col, [0, 1])
 
-@app.post("/predict")
-async def predict(input_data: InputData):
-    
-        df = pd.DataFrame([input_data.model_dump().values()], 
-                          columns=input_data.model_dump().keys())
-        pred = model.predict(df)
-        return {"predicted_class": int(pred[0])}
+# Convert to dataframe
+input_df = pd.DataFrame([user_input])
 
+if st.button("Predict"):
+    prediction = model.predict(input_df)[0]
 
-
+    label_map = {0: "Edible", 1: "Poisonous"}
+    st.success(f"Prediction: **{label_map[prediction]}**")
