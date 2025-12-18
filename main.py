@@ -13,7 +13,7 @@ from steps.predict import Predictor
 # Logging setup
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s:%(levelname)s:%(message)s'
+    format="%(asctime)s:%(levelname)s:%(message)s"
 )
 
 
@@ -51,11 +51,13 @@ def train_with_mlflow():
         y_test = label_encoder.transform(y_test)
 
         # ======================
-        # 4. Clean Features
+        # 4. Clean & Encode Features
         # ======================
         cleaner = Cleaner()
-        X_train = cleaner.clean_data(X_train)
-        X_test = cleaner.clean_data(X_test)
+
+        X_train = cleaner.fit_transform(X_train)
+        X_test = cleaner.transform(X_test)
+
         logging.info("Data cleaning completed")
 
         # ======================
