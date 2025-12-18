@@ -2,27 +2,51 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load model
-model_data = joblib.load("models/model.pkl")
-model = model_data["model"]
-columns = model_data["columns"]
+# ======================
+# Load model & encoder
+# ======================
+artifact = joblib.load("models/model.pkl")
+model = artifact["model"]
+encoder = artifact["encoder"]
 
-st.set_page_config(page_title="Mushroom Classifier", layout="centered")
+LABEL_MAP = {
+    0: "Edible 🍄",
+    1: "Poisonous ☠️"
+}
+
+st.set_page_config(
+    page_title="Mushroom Classification",
+    layout="centered"
+)
+
 st.title("🍄 Mushroom Classification App")
-st.write("Predict whether a mushroom is **Edible** or **Poisonous**")
+st.write("Predict whether a mushroom is **edible** or **poisonous**")
 
-st.subheader("Input Mushroom Features")
+# ======================
+# Input Form
+# ======================
+with st.form("mushroom_form"):
+    inputs = {}
 
-# User input
-user_input = {}
-for col in columns:
-    user_input[col] = st.selectbox(col, [0, 1])
+    for col in encoder.feature_names_in_:
+        inputs[col] = st.text_input(col)
 
-# Convert to dataframe
-input_df = pd.DataFrame([user_input])
+    submitted = st.form_submit_button("Predict")
 
-if st.button("Predict"):
-    prediction = model.predict(input_df)[0]
+# ======================
+# Prediction
+# ======================
+if submitted:
+    df = pd.DataFrame([inputs])
 
-    label_map = {0: "Edible", 1: "Poisonous"}
-    st.success(f"Prediction: **{label_map[prediction]}**")
+    try:
+        X = encoder.transform(df)
+        pred = model.predict(X)[0]
+        prob = model.predict_proba(X).max()
+
+        st.success(f"Prediction: **{LABEL_MAP[pred]}**")
+        st.info(f"Confidence: **{prob:.2%}**")
+
+    except Exception as e:
+        st.error("Input tidak valid. Pastikan semua field diisi.")
+        st.exception(e)
