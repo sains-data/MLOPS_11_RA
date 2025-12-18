@@ -35,4 +35,9 @@ class Trainer:
     def save_model(self):
         os.makedirs(self.model_path, exist_ok=True)
         model_file = os.path.join(self.model_path, "model.pkl")
-        joblib.dump(self.pipeline, model_file)
+
+        joblib.dump({
+            "model": self.pipeline,
+            "columns": self.columns
+        }, model_file)
+
