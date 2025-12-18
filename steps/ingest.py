@@ -15,7 +15,7 @@ class Ingestion:
         train_data_path = self.config['data']['train_path']
         test_data_path = self.config['data']['test_path']
 
-        train_data = pd.read_csv(train_data_path)
-        test_data = pd.read_csv(test_data_path)
+        train_data = pd.read_csv(Path(train_data_path))
+        test_data = pd.read_csv(Path(test_data_path))
 
         return train_data, test_data
