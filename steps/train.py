@@ -7,6 +7,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
+
 class Trainer:
     def __init__(self, config_path="config.yml"):
         self.config = self.load_config(config_path)
@@ -18,20 +19,30 @@ class Trainer:
             return yaml.safe_load(f)
 
     def create_pipeline(self, X):
+        """
+        Create preprocessing + model pipeline
+        All features are categorical (mushroom dataset)
+        """
         categorical_cols = X.columns.tolist()
 
         preprocessor = ColumnTransformer(
             transformers=[
-                ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
+                (
+                    "cat",
+                    OneHotEncoder(handle_unknown="ignore", sparse_output=False),
+                    categorical_cols
+                )
             ]
         )
 
         model = RandomForestClassifier(**self.model_params)
 
-        pipeline = Pipeline([
-            ("preprocess", preprocessor),
-            ("model", model)
-        ])
+        pipeline = Pipeline(
+            steps=[
+                ("preprocess", preprocessor),
+                ("model", model)
+            ]
+        )
 
         return pipeline
 
@@ -40,6 +51,13 @@ class Trainer:
         pipeline.fit(X_train, y_train)
 
         os.makedirs(self.model_path, exist_ok=True)
-        joblib.dump(pipeline, f"{self.model_path}/model.pkl")
+
+        joblib.dump(
+            {
+                "model": pipeline,
+                "columns": X_train.columns.tolist()
+            },
+            os.path.join(self.model_path, "model.pkl")
+        )
 
         return pipeline
