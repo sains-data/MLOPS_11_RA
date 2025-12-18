@@ -1,6 +1,6 @@
 data:
-  train_path: data/train/mushroom_train.csv
-  test_path: data/test/mushroom_test.csv
+  train_path: data/mushroom_train.csv
+  test_path: data/mushroom_test.csv
 
 model:
   name: RandomForestClassifier
