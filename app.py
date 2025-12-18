@@ -2,21 +2,41 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-st.set_page_config(page_title="Mushroom Classifier")
+# ======================
+# Load Model Artifact
+# ======================
+artifact = joblib.load("models/model.pkl")
+model = artifact["model"]
+columns = artifact["columns"]
 
-st.title("🍄 Mushroom Classification")
+st.set_page_config(page_title="Mushroom Classifier", layout="centered")
 
-pipeline = joblib.load("models/model.pkl")
+st.title("🍄 Mushroom Classification App")
+st.write("Predict whether a mushroom is **Edible** or **Poisonous**")
 
-feature_names = pipeline.named_steps["preprocess"].transformers_[0][2]
+# ======================
+# Input Form
+# ======================
+input_data = {}
 
-inputs = {}
-for col in feature_names:
-    inputs[col] = st.text_input(col)
+for col in columns:
+    input_data[col] = st.text_input(col)
 
+# ======================
+# Predict
+# ======================
 if st.button("Predict"):
-    df = pd.DataFrame([inputs])
-    pred = pipeline.predict(df)[0]
+    try:
+        input_df = pd.DataFrame([input_data])
 
-    label = "Edible 🍄" if pred == 0 else "Poisonous ☠️"
-    st.success(f"Prediction: {label}")
+        # Ensure column order
+        input_df = input_df[columns]
+
+        prediction = model.predict(input_df)[0]
+        label = "Edible" if prediction == 0 else "Poisonous"
+
+        st.success(f"Prediction: **{label}**")
+
+    except Exception as e:
+        st.error("Prediction failed")
+        st.exception(e)
