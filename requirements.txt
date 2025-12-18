@@ -1,4 +1,4 @@
-scikit-learn==1.5.1
+scikit-learn==1.4.2
 joblib==1.4.2
 pandas==2.2.2
 dvc==3.51.2
