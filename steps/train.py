@@ -17,33 +17,21 @@ class Trainer:
             return yaml.safe_load(file)
 
     def create_pipeline(self):
-        """
-        Pipeline for mushroom classification
-        (features already encoded in clean step)
-        """
         model = RandomForestClassifier(**self.model_params)
 
         pipeline = Pipeline([
-            ('model', model)
+            ("model", model)
         ])
-
         return pipeline
 
     def train_model(self, X_train, y_train):
-        self.columns = X_train.columns.tolist()
         self.pipeline.fit(X_train, y_train)
 
-
-   def save_model(self):
+    def save_model(self):
         os.makedirs(self.model_path, exist_ok=True)
         model_file = os.path.join(self.model_path, "model.pkl")
-    
-        joblib.dump(
-            {
-                "model": self.pipeline,
-                "columns": self.columns
-            },
-            model_file
-        )
 
-
+        joblib.dump({
+            "model": self.pipeline,
+            "columns": X_train.columns.tolist()
+        }, model_file)
